@@ -3,6 +3,7 @@ import os
 import shutil
 import urllib.request
 import zipfile
+import gdown
 from argparse import ArgumentParser
 
 import gradio as gr
@@ -75,10 +76,20 @@ def download_online_model(url, dir_name, progress=gr.Progress()):
         if os.path.exists(extraction_folder):
             raise gr.Error(f'Voice model directory {dir_name} already exists! Choose a different name for your voice model.')
 
-        if 'pixeldrain.com' in url:
-            url = f'https://pixeldrain.com/api/file/{zip_name}'
+        if 'huggingface.co' in url:
+            urllib.request.urlretrieve(url, zip_name)
 
-        urllib.request.urlretrieve(url, zip_name)
+        if 'pixeldrain.com' in url:
+            zip_name = dir_name + '.zip'
+            url = f'https://pixeldrain.com/api/file/{zip_name}'
+            urllib.request.urlretrieve(url, zip_name)
+
+        elif 'drive.google.com' in url:
+            # Extract the Google Drive file ID
+            zip_name = dir_name + '.zip'
+            file_id = url.split('/')[-2]
+            output = os.path.join('.', f'{dir_name}.zip')  # Adjust the output path if needed
+            gdown.download(id=file_id, output=output, quiet=False)
 
         progress(0.5, desc='[~] Extracting zip...')
         extract_zip(extraction_folder, zip_name)
@@ -190,7 +201,7 @@ if __name__ == '__main__':
                         song_input_file.upload(process_file_upload, inputs=[song_input_file], outputs=[local_file, song_input])
 
                     with gr.Column():
-                        pitch = gr.Slider(-3, 3, value=0, step=1, label='Pitch Change (Vocals ONLY)', info='Generally, use 1 for male to female conversions and -1 for vice-versa. (Octaves)')
+                        pitch = gr.Slider(-12, 12, value=0, step=1, label='Pitch Change (Vocals ONLY)', info='Generally, use 1 for male to female conversions and -1 for vice-versa. (Octaves)')
                         pitch_all = gr.Slider(-12, 12, value=0, step=1, label='Overall Pitch Change', info='Changes pitch/key of vocals and instrumentals together. Altering this slightly reduces sound quality. (Semitones)')
                     show_file_upload_button.click(swap_visibility, outputs=[file_upload_col, yt_link_col, song_input, local_file])
                     show_yt_link_button.click(swap_visibility, outputs=[yt_link_col, file_upload_col, song_input, local_file])
@@ -222,7 +233,7 @@ if __name__ == '__main__':
                     reverb_damping = gr.Slider(0, 1, value=0.7, label='Damping level', info='Absorption of high frequencies in the reverb')
 
                 gr.Markdown('### Audio Output Format')
-                output_format = gr.Dropdown(['mp3', 'wav'], value='mp3', label='Output file type', info='mp3: small file size, decent quality. wav: Large file size, best quality')
+                output_format = gr.Dropdown(['mp3', 'wav'], value='wav', label='Output file type', info='mp3: small file size, decent quality. wav: Large file size, best quality')
 
             with gr.Row():
                 clear_btn = gr.ClearButton(value='Clear', components=[song_input, rvc_model, keep_files, local_file])
