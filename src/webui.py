@@ -233,12 +233,14 @@ if __name__ == '__main__':
                     reverb_damping = gr.Slider(0, 1, value=0.7, label='Damping level', info='Absorption of high frequencies in the reverb')
 
                 gr.Markdown('### Audio Output Format')
-                output_format = gr.Dropdown(['mp3', 'wav'], value='wav', label='Output file type', info='mp3: small file size, decent quality. wav: Large file size, best quality')
+                output_format = gr.Dropdown(['mp3', 'wav'], value='mp3', label='Output file type', info='mp3: small file size, decent quality. wav: Large file size, best quality')
 
             with gr.Row():
                 clear_btn = gr.ClearButton(value='Clear', components=[song_input, rvc_model, keep_files, local_file])
                 generate_btn = gr.Button("Generate", variant='primary')
-                ai_cover = gr.Audio(label='AI Cover', show_share_button=False)
+            with gr.Row():
+                ai_cover = gr.Audio(label='AI Cover (Vocal Only Inference)', show_share_button=False)
+                ai_backing = gr.Audio(label='AI Cover (Vocal Backing Inference)', show_share_button=False)
 
             ref_btn.click(update_models_list, None, outputs=rvc_model)
             is_webui = gr.Number(value=1, visible=False)
@@ -247,7 +249,7 @@ if __name__ == '__main__':
                                        inst_gain, index_rate, filter_radius, rms_mix_rate, f0_method, crepe_hop_length,
                                        protect, pitch_all, reverb_rm_size, reverb_wet, reverb_dry, reverb_damping,
                                        output_format],
-                               outputs=[ai_cover])
+                               outputs=[ai_cover, ai_backing])
             clear_btn.click(lambda: [0, 0, 0, 0, 0.5, 3, 0.25, 0.33, 'rmvpe', 128, 0, 0.15, 0.2, 0.8, 0.7, 'mp3', None],
                             outputs=[pitch, main_gain, backup_gain, inst_gain, index_rate, filter_radius, rms_mix_rate,
                                      protect, f0_method, crepe_hop_length, pitch_all, reverb_rm_size, reverb_wet,
