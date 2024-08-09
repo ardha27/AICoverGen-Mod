@@ -14,6 +14,8 @@ rvc_models/rmvpe.pt
 song_output/*/*.wav
 song_output/*/*.mp3
 
+AICoverGen/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
