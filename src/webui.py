@@ -25,7 +25,7 @@ def get_current_models(models_dir):
 
 def update_models_list():
     models_l = get_current_models(rvc_models_dir)
-    return gr.Dropdown.update(choices=models_l)
+    return gr.Dropdown(choices=models_l)
 
 
 def load_public_models():
