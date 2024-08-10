@@ -28,36 +28,65 @@ rvc_models_dir = os.path.join(BASE_DIR, 'rvc_models')
 output_dir = os.path.join(BASE_DIR, 'song_output')
 
 
-def get_youtube_video_id(url, ignore_playlist=True):
+def get_media_id(url, ignore_playlist=True):
     """
-    Examples:
-    http://youtu.be/SA2iWivDJiE
-    http://www.youtube.com/watch?v=_oPAwA_Udwc&feature=feedu
-    http://www.youtube.com/embed/SA2iWivDJiE
-    http://www.youtube.com/v/SA2iWivDJiE?version=3&amp;hl=en_US
+    Extracts media IDs or relevant identifiers from URLs of various video/audio platforms.
+    
+    Supported examples:
+    - YouTube: http://youtu.be/SA2iWivDJiE
+    - YouTube Shorts: https://www.youtube.com/shorts/abcdEFGH123
+    - Vimeo: https://vimeo.com/12345678
+    - Dailymotion: http://www.dailymotion.com/video/x2b4hcd
+    - SoundCloud: https://soundcloud.com/artistname/songname
+    - TikTok: https://www.tiktok.com/@user/video/1234567890
+    - Spotify: https://open.spotify.com/track/6rqhFgbbKwnb9MLmUQDhG6
+    - Many others supported by yt-dlp...
     """
     query = urlparse(url)
-    if query.hostname == 'youtu.be':
-        if query.path[1:] == 'watch':
-            return query.query[2:]
-        return query.path[1:]
 
-    if query.hostname in {'www.youtube.com', 'youtube.com', 'music.youtube.com'}:
+    # YouTube
+    if query.hostname in {'youtu.be', 'www.youtube.com', 'youtube.com', 'music.youtube.com'}:
+        if query.hostname == 'youtu.be':
+            return query.path[1:]
         if not ignore_playlist:
-            # use case: get playlist id not current video in playlist
             with suppress(KeyError):
                 return parse_qs(query.query)['list'][0]
         if query.path == '/watch':
             return parse_qs(query.query)['v'][0]
-        if query.path[:7] == '/watch/':
-            return query.path.split('/')[1]
-        if query.path[:7] == '/embed/':
+        if query.path.startswith(('/watch/', '/embed/', '/v/')):
             return query.path.split('/')[2]
-        if query.path[:3] == '/v/':
+        # YouTube Shorts
+        if query.path.startswith('/shorts/'):
             return query.path.split('/')[2]
 
-    # returns None for invalid YouTube url
+    # Vimeo
+    if query.hostname in {'vimeo.com'}:
+        return query.path.split('/')[1]
+
+    # Dailymotion
+    if query.hostname in {'www.dailymotion.com', 'dailymotion.com'}:
+        if query.path.startswith('/video/'):
+            return query.path.split('/')[2]
+
+    # SoundCloud
+    if query.hostname in {'soundcloud.com'}:
+        return query.path.split('/')[2] if len(query.path.split('/')) > 2 else None
+
+    # TikTok
+    if query.hostname in {'www.tiktok.com', 'tiktok.com'}:
+        if query.path.startswith('/@'):
+            return query.path.split('/')[-1]
+
+    # Spotify
+    if query.hostname in {'open.spotify.com'}:
+        if query.path.startswith(('/track/', '/album/', '/playlist/')):
+            return query.path.split('/')[2]
+
+    # Add more platforms as needed...
+
+    # Returns None for unsupported or invalid URLs
     return None
+
 
 
 def yt_download(link):
@@ -250,9 +279,9 @@ def song_cover_pipeline(song_input, voice_model, pitch_change, keep_files,
         # if youtube url
         if urlparse(song_input).scheme == 'https':
             input_type = 'yt'
-            song_id = get_youtube_video_id(song_input)
+            song_id = get_media_id(song_input)
             if song_id is None:
-                error_msg = 'Invalid YouTube url.'
+                error_msg = 'Invalid url.'
                 raise_exception(error_msg, is_webui)
 
         # local audio file
