@@ -1,5 +1,7 @@
 # AICoverGen
-An autonomous pipeline to create covers with any RVC v2 trained AI voice from YouTube videos or a local audio file. For developers who may want to add a singing functionality into their AI assistant/chatbot/vtuber, or for people who want to hear their favourite characters sing their favourite song.
+An autonomous pipeline to create covers with any RVC v2 trained AI voice from YouTube videos or a local audio file. Built for developers who want to add singing to their AI assistant, chatbot, or vtuber, and for anyone who wants to hear their favourite characters sing their favourite song.
+
+This is a modified fork of [SociallyIneptWeeb/AICoverGen](https://github.com/SociallyIneptWeeb/AICoverGen).
 
 Showcase: https://www.youtube.com/watch?v=2qZuE4WM7CM
 
@@ -7,7 +9,7 @@ Setup Guide: https://www.youtube.com/watch?v=pdlhk4vVHQk
 
 ![](images/webui_generate.png?raw=true)
 
-WebUI is under constant development and testing, but you can try it out right now on both local and colab!
+The WebUI is under active development, but you can try it out right now on both local and colab.
 
 ## Changelog
 
@@ -30,15 +32,14 @@ WebUI is under constant development and testing, but you can try it out right no
 
 ## Update AICoverGen to latest version
 
-Install and pull any new requirements and changes by opening a command line window in the `AICoverGen` directory and running the following commands.
+To pull new changes and requirements, open a command line window in the `AICoverGen-Mod` directory and run the following commands.
 
 ```
 pip install -r requirements.txt
 git pull
 ```
 
-For colab users, simply click `Runtime` in the top navigation bar of the colab notebook and `Disconnect and delete runtime` in the dropdown menu. 
-Then follow the instructions in the notebook to run the webui.
+For colab users, click `Runtime` in the top navigation bar of the colab notebook, then `Disconnect and delete runtime` in the dropdown menu. After that, follow the instructions in the notebook to run the webui.
 
 ## Colab notebook
 
@@ -50,9 +51,11 @@ For those who want to run this locally, follow the setup guide below.
 
 ## Setup
 
+> Note: if `pip install -r requirements.txt` fails for you, that's a known dependency clash, not a problem with your machine. The default requirements can't all be installed on a single Python version. See the [Running locally on Python 3.8 (no Colab)](#running-locally-on-python-38-no-colab) section below for a setup that works end to end.
+
 ### Install Git and Python
 
-Follow the instructions [here](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) to install Git on your computer. Also follow this [guide](https://realpython.com/installing-python/) to install Python **VERSION 3.9** if you haven't already. Using other versions of Python may result in dependency conflicts.
+Follow the instructions [here](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) to install Git on your computer. Then follow this [guide](https://realpython.com/installing-python/) to install Python **VERSION 3.9** if you haven't already. Using other versions of Python may cause dependency conflicts.
 
 ### Install ffmpeg
 
@@ -64,11 +67,11 @@ Follow the instructions [here](https://www.tutorialexample.com/a-step-guide-to-i
 
 ### Clone AICoverGen repository
 
-Open a command line window and run these commands to clone this entire repository and install the additional dependencies required.
+Open a command line window and run these commands to clone this repository and install its dependencies.
 
 ```
-git clone https://github.com/SociallyIneptWeeb/AICoverGen
-cd AICoverGen
+git clone https://github.com/ardha27/AICoverGen-Mod
+cd AICoverGen-Mod
 pip install -r requirements.txt
 ```
 
@@ -103,19 +106,18 @@ Once the following output message `Running on local URL:  http://127.0.0.1:7860`
 
 ![](images/webui_dl_model.png?raw=true)
 
-Navigate to the `Download model` tab, and paste the download link to the RVC model and give it a unique name.
-You may search the [AI Hub Discord](https://discord.gg/aihub) where already trained voice models are available for download. You may refer to the examples for how the download link should look like.
+Navigate to the `Download model` tab, paste the download link to the RVC model, and give it a unique name.
+You can search the [AI Hub Discord](https://discord.gg/aihub) for already trained voice models. Refer to the examples for what the download link should look like.
 The downloaded zip file should contain the .pth model file and an optional .index file.
 
-Once the 2 input fields are filled in, simply click `Download`! Once the output message says `[NAME] Model successfully downloaded!`, you should be able to use it in the `Generate` tab after clicking the refresh models button!
+Once both input fields are filled in, click `Download`. When the output message says `[NAME] Model successfully downloaded!`, click the refresh models button and you can use it in the `Generate` tab.
 
 ### Upload RVC models via WebUI
 
 ![](images/webui_upload_model.png?raw=true)
 
-For people who have trained RVC v2 models locally and would like to use them for AI Cover generations.
-Navigate to the `Upload model` tab, and follow the instructions.
-Once the output message says `[NAME] Model successfully uploaded!`, you should be able to use it in the `Generate` tab after clicking the refresh models button!
+If you have trained RVC v2 models locally and want to use them for AI cover generations, navigate to the `Upload model` tab and follow the instructions.
+When the output message says `[NAME] Model successfully uploaded!`, click the refresh models button and you can use it in the `Generate` tab.
 
 
 ### Running the pipeline via WebUI
@@ -127,7 +129,7 @@ Once the output message says `[NAME] Model successfully uploaded!`, you should b
 - Pitch should be set to either -12, 0, or 12 depending on the original vocals and the RVC AI modal. This ensures the voice is not *out of tune*.
 - Other advanced options for Voice conversion and audio mixing can be viewed by clicking the accordion arrow to expand.
 
-Once all Main Options are filled in, click `Generate` and the AI generated cover should appear in a less than a few minutes depending on your GPU.
+Once all Main Options are filled in, click `Generate`. The AI cover should appear in a few minutes, depending on your GPU.
 
 ## Usage with CLI
 
