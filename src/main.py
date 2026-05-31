@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import shlex
+import shutil
 import subprocess
 from contextlib import suppress
 from urllib.parse import urlparse, parse_qs
@@ -179,7 +180,14 @@ def preprocess_song(song_input, mdx_model_params, song_id, is_webui, input_type,
     orig_song_path = convert_to_stereo(orig_song_path)
 
     display_progress('[~] Separating Vocals from Instrumental...', 0.1, is_webui, progress)
-    vocals_path, instrumentals_path = run_roformer(mdx_model_params, song_output_dir, 'model_bs_roformer_ep_317_sdr_12.9755.ckpt', orig_song_path, denoise=True, keep_orig=keep_orig)
+    # run_roformer shells out to the `audio-separator` CLI, which needs Python>=3.9 and isn't
+    # installable on Python 3.8 (the only interpreter with a prebuilt fairseq 0.12.2 wheel). When
+    # the CLI is present we keep the higher-quality roformer split; otherwise we fall back to the
+    # bundled onnxruntime MDX-Net separator (UVR-MDX-NET-Voc_FT.onnx) so the pipeline still runs.
+    if shutil.which('audio-separator'):
+        vocals_path, instrumentals_path = run_roformer(mdx_model_params, song_output_dir, 'model_bs_roformer_ep_317_sdr_12.9755.ckpt', orig_song_path, denoise=True, keep_orig=keep_orig)
+    else:
+        vocals_path, instrumentals_path = run_mdx(mdx_model_params, song_output_dir, os.path.join(mdxnet_models_dir, 'UVR-MDX-NET-Voc_FT.onnx'), orig_song_path, denoise=True, keep_orig=keep_orig)
 
     display_progress('[~] Separating Main Vocals from Backup Vocals...', 0.2, is_webui, progress)
     backup_vocals_path, main_vocals_path = run_mdx(mdx_model_params, song_output_dir, os.path.join(mdxnet_models_dir, 'UVR_MDXNET_KARA_2.onnx'), vocals_path, suffix='Backup', invert_suffix='Main', denoise=True)
@@ -325,6 +333,21 @@ def song_cover_pipeline(song_input, voice_model, pitch_change, keep_files,
 
 
 if __name__ == '__main__':
+    # py3.8 compat: argparse.BooleanOptionalAction was added in Python 3.9.
+    if not hasattr(argparse, 'BooleanOptionalAction'):
+        class BooleanOptionalAction(argparse.Action):
+            def __init__(self, option_strings, dest, default=None, help=None):
+                _opts = []
+                for opt in option_strings:
+                    _opts.append(opt)
+                    if opt.startswith('--'):
+                        _opts.append('--no-' + opt[2:])
+                super().__init__(option_strings=_opts, dest=dest, nargs=0, default=default, help=help)
+
+            def __call__(self, parser, namespace, values, option_string=None):
+                setattr(namespace, self.dest, not option_string.startswith('--no-'))
+        argparse.BooleanOptionalAction = BooleanOptionalAction
+
     parser = argparse.ArgumentParser(description='Generate a AI cover song in the song_output/id directory.', add_help=True)
     parser.add_argument('-i', '--song-input', type=str, required=True, help='Link to a YouTube video or the filepath to a local mp3/wav file to create an AI cover of')
     parser.add_argument('-dir', '--rvc-dirname', type=str, required=True, help='Name of the folder in the rvc_models directory containing the RVC model file and optional index file to use')

@@ -183,6 +183,45 @@ python src/main.py [-h] -i SONG_INPUT -dir RVC_DIRNAME -p PITCH_CHANGE [-k | --k
 | `-oformat OUTPUT_FORMAT`                   | Optional. Default mp3. wav for best quality and large file size, mp3 for decent quality and small file size. |
 
 
+## Running locally on Python 3.8 (no Colab)
+
+If `pip install -r requirements.txt` fails on your machine, it's not your setup — the
+default requirements can't all be satisfied on one Python version:
+
+- `fairseq==0.12.2` only ships a prebuilt wheel for Python **<= 3.8**. On 3.11/3.12 pip
+  tries to build it from source, which fails on newer CPython/Cython (the usual `egg_info`
+  / build errors people hit).
+- `scipy>=1.13`, `audio-separator`, and `argparse.BooleanOptionalAction` all need Python **>= 3.9**.
+
+The combination below is verified end to end on a local NVIDIA RTX 2060 (6 GB, CUDA 11.8),
+producing an AI cover from a local audio file with the GPU actually in use (~5 GB VRAM peak).
+
+```bash
+# 1. Python 3.8 venv
+python3.8 -m venv venv && source venv/bin/activate
+pip install pip==23.3.1 wheel setuptools
+
+# 2. Torch with CUDA 11.8
+pip install torch==2.0.1+cu118 torchaudio==2.0.2+cu118 \
+  --extra-index-url https://download.pytorch.org/whl/cu118
+
+# 3. The rest (fairseq's cp38 wheel installs cleanly, no source build)
+pip install -r requirements_py38.txt
+
+# 4. CUDA 11.8 runtime for onnxruntime-gpu's MDX-Net separation
+pip install nvidia-cudnn-cu11==8.7.0.84
+
+# 5. Models, then run on a local file
+python src/download_models.py
+python src/main.py -i path/to/song.wav -dir YourModelFolder -p 0 -k -oformat mp3
+```
+
+On Python 3.8 the `audio-separator` CLI isn't available, so the first vocal/instrumental
+split falls back to the bundled MDX-Net model (`UVR-MDX-NET-Voc_FT.onnx`) automatically.
+With Python 3.9+ and `audio-separator` installed, the higher-quality roformer split is used
+as before — nothing changes for existing setups.
+
+
 ## Terms of Use
 
 The use of the converted voice for the following purposes is prohibited.

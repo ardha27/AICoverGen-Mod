@@ -1,0 +1,33 @@
+# Python 3.8 dependency set (verified on a local RTX 2060, CUDA 11.8 — no Colab).
+#
+# Why a separate file: the main requirements.txt can't be satisfied on a single
+# Python version. fairseq==0.12.2 only ships a prebuilt wheel for Python <=3.8,
+# while scipy>=1.13, audio-separator and argparse.BooleanOptionalAction all need
+# Python >=3.9. On 3.8 the pins below resolve and the CLI runs end to end.
+#
+# Install torch separately first (cu118 wheels):
+#   pip install torch==2.0.1+cu118 torchaudio==2.0.2+cu118 --extra-index-url https://download.pytorch.org/whl/cu118
+# Then: pip install -r requirements_py38.txt
+# audio-separator is intentionally omitted; main.py falls back to the bundled
+# MDX-Net separator when the audio-separator CLI is absent.
+
+deemix
+fairseq==0.12.2
+faiss-cpu==1.7.3
+ffmpeg-python>=0.2.0
+gradio==4.29.0
+lib==4.0.0
+librosa==0.10
+numpy==1.23.5
+onnxruntime-gpu==1.15.1
+praat-parselmouth>=0.4.2
+pedalboard==0.7.7
+pydub==0.25.1
+pyworld==0.3.4
+Requests==2.31.0
+scipy==1.10.1
+soundfile==0.12.1
+torchcrepe==0.0.23
+tqdm==4.65.0
+yt_dlp==2023.7.6
+sox==1.4.1
